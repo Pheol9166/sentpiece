@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+message NormalizerConfig{
+  bool lower = 1;
+  string unicode_format = 2;
+  repeated CustomRule custom_rules = 3;
+}
+
+message CustomRule {
+  string pattern = 1;
+  string replacement = 2;
+}
+
+message UnigramConfig {
+  uint32 max_sub_len = 1;
+  uint32 em_iters = 2;
+  float n_per = 3;
+  float epsilon = 4;
+  float alpha = 5;
+  float unk_penalty = 6;
+}
+
+message VocabEntry {
+  string key = 1;
+  int32 value = 2;
+}
+
+message TokenEntry {
+  string key = 1;
+  int32 value = 2;
+}
+
+message SpecialTokenEntry {
+  oneof token {
+    string token_str = 1;
+    TokenEntry token_pair = 2;
+  }
+}
+
+message ModelProto {
+  repeated VocabEntry vocab = 1;
+  repeated SpecialTokenEntry special_tokens = 2;
+  NormalizerConfig normalizer = 3;
+  string model_type = 4;
+  uint32 vocab_size = 5;
+  UnigramConfig unigram = 6;
+}
