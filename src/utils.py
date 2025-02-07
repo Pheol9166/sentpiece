@@ -41,12 +41,14 @@ def load_model(path: str):
       "alpha": model_proto.unigram.alpha,
       "unk_penalty": model_proto.unigram.unk_penalty
     }
+    unigram_prob = {pair.token: pair.prob for pair in model_proto.unigram_prob}
   elif model_type == "bpe":
     unigram_config = None
+    unigram_prob = None
   else:
     raise ValueError("Unknown mode, Check model type again")
 
-  return vocab, special_tokens, normalizer_config, model_type, vocab_size, unigram_config 
+  return vocab, special_tokens, normalizer_config, model_type, vocab_size, unigram_config, unigram_prob
 
 def load_vocab(path: str) -> Dict[str, int]:
   vocab = {}

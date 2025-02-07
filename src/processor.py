@@ -18,6 +18,7 @@ class Processor:
       self.tokenizer = BPE(vocab_size, special_tokens)
     elif mode == "unigram":
       self.tokenizer = Unigram(vocab_size, special_token=special_tokens, **unigram_config)
+      self.tokenizer.probs = unigram_prob
     else:
       raise ValueError("mode must be BPE or Unigram")
     self.tokenizer.vocab = self.word2idx

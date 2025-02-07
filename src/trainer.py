@@ -1,3 +1,4 @@
+# TODO: probs 인식 안되는 오류 실험
 from typing import List, Dict, Union, Any, Optional
 from model_pb2 import ModelProto
 from tokenizer.bpe import BPE
@@ -67,6 +68,11 @@ class Trainer:
       unigram_config.epsilon = self.tokenizer.epsilon
       unigram_config.alpha = self.tokenizer.alpha
       unigram_config.unk_penalty = self.tokenizer.unk_penalty
+
+      for token, prob in self.tokenizer.probs.items():
+        pair = model_proto.unigram_prob.add()
+        pair.token = token
+        pair.prob = prob
 
     with open(f"{self.model_prefix}.pb", "wb") as fw:
       fw.write(model_proto.SerializeToString())

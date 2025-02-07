@@ -15,7 +15,7 @@ class Unigram(Tokenizer):
     self.em_iters = em_iters
     self.n_per = n_per  # 유지 비율
     self.vocab = None   # 어휘 집합
-    self.probs = None   # 토큰 확률 분포
+    self.probs = {}   # 토큰 확률 분포
     self.counts = None  # E-step에서 계산된 빈도
     self.single_tokens = set()    # 단일 문자 토큰 (OOV 방지용)
     self.epsilon = epsilon  # forbidding 0 division error
