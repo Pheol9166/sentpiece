@@ -1,4 +1,3 @@
-# TODO: probs 인식 안되는 오류 실험
 from typing import List, Dict, Union, Any, Optional
 from model_pb2 import ModelProto
 from tokenizer.bpe import BPE
@@ -6,7 +5,7 @@ from tokenizer.unigram import Unigram
 from normalizer import Normalizer
 
 class Trainer:
-  def __init__(self, vocab_size: int= 100, model_prefix: str= "spm", mode: str="unigram", special_token: Union[List, Dict]= ["[UNK]"], normalizer_config: Optional[Dict[str, Any]]=None, unigram_config: Optional[Dict[str, Any]]= None):
+  def __init__(self, vocab_size: int= 100, model_prefix: str= "spm", mode: str="unigram", special_token: Union[List, Dict]= ["[UNK]"], normalizer_config: Optional[Dict[str, Any]]=None, unigram_config: Optional[Dict[str, Any]]= None, unigram_prob: Optional[Dict[str, float]]= None):
     self.vocab_size = vocab_size
     self.model_prefix = model_prefix
     self.special_token = special_token
@@ -17,6 +16,7 @@ class Trainer:
       self.tokenizer = BPE(vocab_size, special_token=special_token)
     elif mode.lower() == "unigram":
       self.tokenizer = Unigram(vocab_size, special_token=self.special_token,  **unigram_config) if unigram_config else Unigram(vocab_size, special_token=self.special_token)
+      self.tokenizer.probs = unigram_prob
     else:
       raise ValueError("mode must be bpe or unigram")
 
