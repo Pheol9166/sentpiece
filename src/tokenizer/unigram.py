@@ -180,7 +180,8 @@ class Unigram(Tokenizer):
                         backpointer[i] = backpointer[j] + [token]
 
                 else:
-                    backpointer[i] = backpointer[j] + [self.unk_token]
+                   if not backpointer[i]:
+                       backpointer[i] = backpointer[j] + [self.unk_token]
 
         return backpointer[n] if dp[n] != -float("inf") else [sent]
 
