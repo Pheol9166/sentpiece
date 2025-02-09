@@ -84,7 +84,6 @@ class Unigram(Tokenizer):
         self.single_tokens = set(char_counts.keys())
         self.vocab = list(self.single_tokens)
 
-        # 목표 크기의 4배로 초기 시드 크기 지정
         seed_size = self.target_size * 4
         sorted_subs = sorted(subword_counts.items(), key=lambda x: -x[1])
 
@@ -96,7 +95,7 @@ class Unigram(Tokenizer):
 
         self.probs = {
             token: 1.0 / len(self.vocab) for token in self.vocab
-        }  # 초기 확률 균등분포
+        }
 
         self._normalize_probs()
 
@@ -142,7 +141,6 @@ class Unigram(Tokenizer):
         return losses
 
     def _prune_vocab(self, losses: Dict[str, float]):
-        # 단일 및 다중 문자 분리
         multi_tokens = [t for t in self.vocab if len(t) > 1]
         single_tokens = [t for t in self.vocab if len(t) == 1]
 
@@ -180,8 +178,8 @@ class Unigram(Tokenizer):
                         backpointer[i] = backpointer[j] + [token]
 
                 else:
-                   if not backpointer[i]:
-                       backpointer[i] = backpointer[j] + [self.unk_token]
+                    if not backpointer[i]:
+                        backpointer[i] = backpointer[j] + [self.unk_token]
 
         return backpointer[n] if dp[n] != -float("inf") else [sent]
 

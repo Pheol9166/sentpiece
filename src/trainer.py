@@ -5,8 +5,6 @@ from tokenizer.unigram import Unigram
 from normalizer import Normalizer
 
 
-# special_token 수정, trainer에서 special token을 주니까, 따로 클래스를 만들던가 아니면 dict를 활용해서 tokenizer 모델들에게는 special token 변수 하나만 받게 하면 될듯
-# self.special_token을 할 필요가 있을까?
 class Trainer:
     def __init__(
         self,
@@ -23,7 +21,7 @@ class Trainer:
         eos_id: int = 3,
         custom_special_tokens: Optional[Dict[str, int]] = None,
         normalizer_config: Optional[Dict[str, Any]] = None,
-        unigram_config: Optional[Dict[str, Any]] = None
+        unigram_config: Optional[Dict[str, Any]] = None,
     ):
         self.vocab_size = vocab_size
         self.model_prefix = model_prefix
@@ -49,10 +47,17 @@ class Trainer:
         self.mode = mode
 
         if mode.lower() == "bpe":
-            self.tokenizer = BPE(vocab_size, unk_token=self.unk_token, special_token=self.special_token)
+            self.tokenizer = BPE(
+                vocab_size, unk_token=self.unk_token, special_token=self.special_token
+            )
         elif mode.lower() == "unigram":
             self.tokenizer = (
-                Unigram(vocab_size, unk_token=self.unk_token, special_token=self.special_token, **unigram_config)
+                Unigram(
+                    vocab_size,
+                    unk_token=self.unk_token,
+                    special_token=self.special_token,
+                    **unigram_config,
+                )
                 if unigram_config
                 else Unigram(vocab_size, special_token=self.special_token)
             )
@@ -73,18 +78,18 @@ class Trainer:
             entry = model_proto.vocab.add()
             entry.key = key
             entry.value = value
-        
+
         default_tokens = model_proto.special_tokens
         default_tokens.pad.token = self.pad_token
         default_tokens.unk.token = self.unk_token
         default_tokens.sos.token = self.sos_token
         default_tokens.eos.token = self.eos_token
-        
+
         default_tokens.pad.value = self.special_token[self.pad_token]
         default_tokens.unk.value = self.special_token[self.unk_token]
         default_tokens.sos.value = self.special_token[self.sos_token]
         default_tokens.eos.value = self.special_token[self.eos_token]
-        
+
         if self.custom_tokens:
             for token, idx in self.custom_tokens.items():
                 entry = model_proto.custom_tokens.add()

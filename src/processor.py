@@ -4,25 +4,41 @@ from tokenizer.bpe import BPE
 from tokenizer.unigram import Unigram
 from utils import load_model
 
-# processor로 처리를 하기 위해서는 special token으로 한 번에 처리할 수 없을듯
+
 class Processor:
     def __init__(self, model_path: str):
-        vocab, default_tokens, custom_tokens, normalizer_config, mode, vocab_size, unigram_config, unigram_prob = (
-            load_model(model_path)
-        )
+        (
+            vocab,
+            default_tokens,
+            custom_tokens,
+            normalizer_config,
+            mode,
+            vocab_size,
+            unigram_config,
+            unigram_prob,
+        ) = load_model(model_path)
         self.word2idx = vocab
         self.idx2word = {idx: word for word, idx in self.word2idx.items()}
         self.normalizer = Normalizer(**normalizer_config)
-        
+
         self.default_tokens = default_tokens
         self.custom_tokens = custom_tokens
-        self.special_tokens = {entry.token: entry.value for entry in default_tokens.values()}.update(custom_tokens)
-        
+        self.special_tokens = {
+            entry.token: entry.value for entry in default_tokens.values()
+        }.update(custom_tokens)
+
         if mode == "bpe":
-            self.tokenizer = BPE(vocab_size, unk_token = default_tokens['unk'].token, special_token=self.special_tokens)
+            self.tokenizer = BPE(
+                vocab_size,
+                unk_token=default_tokens["unk"].token,
+                special_token=self.special_tokens,
+            )
         elif mode == "unigram":
             self.tokenizer = Unigram(
-                vocab_size, unk_token= self.default_tokens['unk'].token, special_token=self.special_tokens, **unigram_config
+                vocab_size,
+                unk_token=self.default_tokens["unk"].token,
+                special_token=self.special_tokens,
+                **unigram_config
             )
             self.tokenizer.probs = unigram_prob
         else:
@@ -37,7 +53,6 @@ class Processor:
         convert id into subword
         """
         return self.idx2word[id]
-        # return self.special_token   아직까지는 확정 x
 
     def piece_to_id(self, piece: str) -> int:
         """
@@ -69,29 +84,31 @@ class Processor:
             return [self.piece_to_id(subword) for subword in subwords]
         else:
             raise ValueError("option must be str or int")
-    
-    def encode_with_sp_tokens(self, sentence: str, max_length: int, option: type = str) -> List[str] | List[int]:
+
+    def encode_with_sp_tokens(
+        self, sentence: str, max_length: int, option: type = str
+    ) -> List[str] | List[int]:
         subwords = self.encode(sentence, int)
-        encoded = [self.special_tokens['sos']] + subwords + [self.special_tokens['eos']]
-        
+        encoded = [self.special_tokens["sos"]] + subwords + [self.special_tokens["eos"]]
+
         if len(encoded) < max_length:
-            encoded += [self.special_tokens['pad']] * (max_length - len(encoded))
+            encoded += [self.special_tokens["pad"]] * (max_length - len(encoded))
         else:
             encoded = encoded[:max_length]
-        
+
         if option == str:
             return [self.id_to_piece(id) for id in encoded]
         elif option == int:
             return encoded
         else:
             raise ValueError("option must be str or int")
-        
+
     def decode_ids_with_sp_tokens(self, ids: List[int]) -> str:
         filtered_ids = [id for id in ids if id not in self.special_tokens.values()]
         return self.decode_ids(filtered_ids)
-    
+
     def decode_pieces_with_sp_tokens(self, pieces: List[str]) -> str:
-        filitered_pieces = [piece for piece in pieces if piece not in self.special_tokens.keys()]
+        filitered_pieces = [
+            piece for piece in pieces if piece not in self.special_tokens.keys()
+        ]
         return self.decode_pieces(filitered_pieces)
-    
-    

@@ -1,21 +1,16 @@
-from typing import List, Dict, Optional, Union
+from typing import List, Dict
 from collections import defaultdict
 from tokenizer.meta_tokenizer import Tokenizer
 from tokenizer.heap import MaxHeap
 from tqdm import tqdm
 
 
-# branch 가르기 -> unk token이 있는 것이 좋은가 그렇지 아니한가.
-# 가르면 unk token 같은 거 다 받게 하고 하는 방식으로 진행할 예정
-# 아니면 dict 고정도 있음.
-# SEP, BOS, EOS...
-# 아하 special token은 학습한 다음에 붙이는구나. -> trainer에만 붙여도 될듯?
 class BPE(Tokenizer):
     def __init__(
         self,
         vocab_size: int = 50,
         unk_token: str = "[UNK]",
-        special_token: Dict[str, int] = {"[UNK]": 0}
+        special_token: Dict[str, int] = {"[UNK]": 0},
     ):
         self.vocab_size = vocab_size
         self.vocab = None
@@ -33,8 +28,7 @@ class BPE(Tokenizer):
             self.heap.insert((freq, pair))
 
         try:
-            pbar = tqdm(total=self.vocab_size,
-                        desc="BPE Training...", leave=False)
+            pbar = tqdm(total=self.vocab_size, desc="BPE Training...", leave=False)
             while (
                 len(self.vocab) <= self.vocab_size - len(self.special_token)
                 and len(self.heap) > 0
@@ -69,8 +63,7 @@ class BPE(Tokenizer):
                 return vocab_id
 
             else:
-                raise TypeError(
-                    "self.special_token type must be List or Dictionary")
+                raise TypeError("self.special_token type must be List or Dictionary")
 
     def _init_vocab(self, corpus: List[str]):
         self.char_sents = [list(sent) for sent in corpus]
