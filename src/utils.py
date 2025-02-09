@@ -14,14 +14,14 @@ def load_model(path: str):
   
   vocab = {entry.key: entry.value for entry in model_proto.vocab}
   
-  special_tokens = []
-  for token_entry in model_proto.special_tokens:
-    if token_entry.HasFile("token_str"):
-      special_tokens.append(token_entry.token_str)
-    elif token_entry.HasFile("token_pair"):
-      special_tokens.append((token_entry.token_pair.key, token_entry.token_pair.value))
-    else:
-      raise TypeError("Unknown token type")
+  default_tokens = {
+    "pad": model_proto.special_tokens.pad,
+    "unk": model_proto.special_tokens.unk,
+    "sos": model_proto.special_tokens.sos,
+    "eos": model_proto.special_tokens.eos
+  }
+  
+  custom_tokens = {entry.sp_token: entry.value for entry in model_proto.custom_tokens} if model_proto.custom_tokens else {}
   
   normalizer_config = {
     "lower": model_proto.normalizer.lower,
@@ -37,9 +37,7 @@ def load_model(path: str):
       "max_sub_len": model_proto.unigram.max_sub_len,
       "em_iters": model_proto.unigram.em_iters,
       "n_per": model_proto.unigram.n_per,
-      "epsilon": model_proto.unigram.epsilon,
-      "alpha": model_proto.unigram.alpha,
-      "unk_penalty": model_proto.unigram.unk_penalty
+      "epsilon": model_proto.unigram.epsilon
     }
     unigram_prob = {pair.token: pair.prob for pair in model_proto.unigram_prob}
   elif model_type == "bpe":
@@ -48,7 +46,7 @@ def load_model(path: str):
   else:
     raise ValueError("Unknown mode, Check model type again")
 
-  return vocab, special_tokens, normalizer_config, model_type, vocab_size, unigram_config, unigram_prob
+  return vocab, default_tokens, custom_tokens, normalizer_config, model_type, vocab_size, unigram_config, unigram_prob
 
 def load_vocab(path: str) -> Dict[str, int]:
   vocab = {}
