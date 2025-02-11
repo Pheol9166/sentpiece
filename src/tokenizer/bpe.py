@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from collections import defaultdict
 from tokenizer.meta_tokenizer import Tokenizer
 from tokenizer.heap import MaxHeap
@@ -21,6 +21,14 @@ class BPE(Tokenizer):
         self.special_token = special_token
 
     def train(self, corpus: List[str]) -> Dict[str, int]:
+        """train vocab by bpe model
+
+        Args:
+            corpus (List[str]): Input sentences
+
+        Returns:
+            Dict[str, int]: trained vocab
+        """
         self._init_vocab(corpus)
         self._init_pair_freq()
 
@@ -45,43 +53,41 @@ class BPE(Tokenizer):
         except Exception as e:
             print(f"Error: {e}")
 
-        finally:
-            if isinstance(self.special_token, list):
-                self.vocab = self.special_token + list(self.vocab)
-                return {token: idx for idx, token in enumerate(self.vocab)}
+        vocab_id = {token: idx for idx, token in enumerate(self.vocab)}
 
-            elif isinstance(self.special_token, dict):
-                vocab_id = {token: idx for idx, token in enumerate(self.vocab)}
-
-                overlap = 0
-                for token, id in vocab_id.items():
-                    if id in self.special_token.values():
-                        vocab_id[token] = len(vocab_id) + overlap
-                        overlap += 1
-                vocab_id.update(self.special_token)
-                vocab_id = dict(sorted(vocab_id.items(), key=lambda x: x[1]))
-                return vocab_id
-
-            else:
-                raise TypeError("self.special_token type must be List or Dictionary")
+        overlap = 0
+        for token, id in vocab_id.items():
+            if id in self.special_token.values():
+                vocab_id[token] = len(vocab_id) + overlap
+                overlap += 1
+        vocab_id.update(self.special_token)
+        vocab_id = dict(sorted(vocab_id.items(), key=lambda x: x[1]))
+        return vocab_id
 
     def _init_vocab(self, corpus: List[str]):
+        """Initialize vocab in given corpus
+
+        Args:
+            corpus (List[str]): Input sentences
+        """
         self.char_sents = [list(sent) for sent in corpus]
         self.vocab = set(sum(self.char_sents, []))
 
     def _init_pair_freq(self):
-        """
-        Create a frequency dictionary for all character pairs in the given sentences.
-
-        Returns:
-            Dict[Tuple[str, str], int]: A dictionary mapping character pairs to their frequency.
+        """Create a frequency dictionary for all character pairs in the given sentences.
         """
         for sent in self.char_sents:
             for i in range(len(sent) - 1):
                 pair = (sent[i], sent[i + 1])
                 self.pair_freq[pair] += 1
 
-    def _update_pair_freq(self, merged_pair, new_token):
+    def _update_pair_freq(self, merged_pair: Tuple[str, str], new_token: str):
+        """Update pair frequency for all character pairs when given pair is merged
+
+        Args:
+            merged_pair (Tuple[str, str]): Pair to merge
+            new_token (str): Merged result
+        """
         a, b = merged_pair
         for idx, sent in enumerate(self.char_sents):
             i = 0
@@ -118,6 +124,13 @@ class BPE(Tokenizer):
                 self.char_sents[idx] = sent
 
     def tokenize(self, normalized_sent: str) -> List[str]:
+        """tokenize normalized sentence with trained vocab
+
+        Args:
+            normalized_sent (str): Sentence to tokenize
+        Returns:
+            List[str]: Tokenized result
+        """
         tokens = []
         while len(normalized_sent) > 0:
             i = len(normalized_sent)
@@ -131,4 +144,12 @@ class BPE(Tokenizer):
         return tokens
 
     def detokenize(self, tokens: List[str]) -> str:
+        """detokenize tokens to sentence
+
+        Args:
+            tokens (List[str]): Token to detokenize
+
+        Returns:
+            str: Detokenized sentence
+        """
         return "".join(tokens).replace("▁", " ").strip()
