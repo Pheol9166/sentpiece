@@ -27,27 +27,48 @@ message UnigramProb {
 
 message VocabEntry {
   string key = 1;
-  int32 value = 2;
+  uint32 value = 2;
 }
 
-message TokenEntry {
-  string key = 1;
-  int32 value = 2;
+message UNK {
+  string token = 1;
+  uint32 value = 2;
 }
 
-message SpecialTokenEntry {
-  oneof token {
-    string token_str = 1;
-    TokenEntry token_pair = 2;
-  }
+message PAD {
+  string token = 1;
+  uint32 value = 2;
+}
+
+message SOS {
+  string token = 1;
+  uint32 value = 2;
+}
+
+message EOS {
+  string token = 1;
+  uint32 value = 2;
+}
+
+message DefaultSpecialToken {
+  PAD pad = 1;
+  UNK unk = 2;
+  SOS sos = 3;
+  EOS eos = 4;
+}
+
+message CustomTokenEntry {
+  string sp_token = 1;
+  uint32 value = 2;
 }
 
 message ModelProto {
   repeated VocabEntry vocab = 1;
-  repeated SpecialTokenEntry special_tokens = 2;
-  NormalizerConfig normalizer = 3;
-  string model_type = 4;
-  uint32 vocab_size = 5;
-  UnigramConfig unigram = 6;
-  repeated UnigramProb unigram_prob = 7;
+  DefaultSpecialToken special_tokens = 2;
+  repeated CustomTokenEntry custom_tokens = 3; 
+  NormalizerConfig normalizer = 4;
+  string model_type = 5;
+  uint32 vocab_size = 6;
+  UnigramConfig unigram = 7;
+  repeated UnigramProb unigram_prob = 8;
 }

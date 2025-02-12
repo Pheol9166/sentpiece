@@ -1,173 +1,232 @@
 # TODO: apply trie data structure
-from typing import List, Dict, Optional, Union
+from typing import List, Dict
 from collections import defaultdict
 from tokenizer.meta_tokenizer import Tokenizer
 from tqdm import tqdm
 import math
 
-def safe_log_prob(p: float, epsilon: float= 1e-10):
-  return -math.log(max(p, epsilon))
+
+def safe_log_prob(p: float, epsilon: float = 1e-10):
+    return -math.log(max(p, epsilon))
+
 
 class Unigram(Tokenizer):
-  def __init__(self, vocab_size: int= 1000, max_sub_len: int= 8, em_iters: int= 3, n_per: float= 0.8, special_token: Optional[Union[List, Dict]]= None, epsilon: float= 1e-10, alpha: float= 1e-7, unk_penalty: float= 1e-8):
-    self.target_size = vocab_size
-    self.max_sub_len = max_sub_len
-    self.em_iters = em_iters
-    self.n_per = n_per  # 유지 비율
-    self.vocab = None   # 어휘 집합
-    self.probs = {}   # 토큰 확률 분포
-    self.counts = None  # E-step에서 계산된 빈도
-    self.single_tokens = set()    # 단일 문자 토큰 (OOV 방지용)
-    self.epsilon = epsilon  # forbidding 0 division error
-    self.alpha = alpha  # Add-a smoothing
-    self.unk_penalty = unk_penalty  # OOV penalty
+    def __init__(
+        self,
+        vocab_size: int = 1000,
+        unk_token: str = "[UNK]",
+        special_token: Dict[str, int] = {"[UNK]": 0},
+        max_sub_len: int = 8,
+        em_iters: int = 3,
+        n_per: float = 0.8,
+        epsilon: float = 1e-10,
+    ):
+        self.target_size = vocab_size
+        self.max_sub_len = max_sub_len
+        self.em_iters = em_iters
+        self.n_per = n_per  # remaining percentage
+        self.vocab = None
+        self.probs = dict()  # token probablity
+        self.counts = None  # token frequency
+        self.single_tokens = set()  # single character token (forbidding OOV)
+        self.epsilon = epsilon  # forbidding 0 division error & unk_penalty
 
-    if special_token:
-      self.special_token = special_token
-    else:
-      self.special_token = list()
+        self.unk_token = unk_token
+        self.special_token = special_token
 
-  def train(self, corpus: List[str]) -> Dict[str, int]:
-    self._init_seed_vocab(corpus)
+    def train(self, corpus: List[str]) -> Dict[str, int]:
+        """train vocab by unigram model
 
-    pbar = tqdm(total = self.target_size, desc="Unigram Training...", leave=False)
-    while len(self.vocab) >= self.target_size - len(self.special_token):
-      self._run_em(corpus)
+        Args:
+            corpus (List[str]): Input Sentences
 
-      losses = self._compute_losses()
+        Returns:
+            Dict[str, int]: trained vocab
+        """
+        self._init_seed_vocab(corpus)
 
-      self._prune_vocab(losses); pbar.update(1)
-      
-    self._normalize_probs()
+        pbar = tqdm(total=self.target_size, desc="Unigram Training...", leave=False)
+        while len(self.vocab) >= self.target_size - len(self.special_token):
+            self._run_em(corpus)
 
-    if isinstance(self.special_token, list):
-      self.vocab = self.special_token + self.vocab
-      return {token: idx for idx, token in enumerate(self.vocab)}
+            losses = self._compute_losses()
 
-    elif isinstance(self.special_token, dict):
-      vocab_id = {token: idx for idx, token in enumerate(self.vocab)}
+            self._prune_vocab(losses)
+            pbar.update(1)
 
-      overlap = 0
-      for token, id in vocab_id.items():
-          if id in self.special_token.values():
-              vocab_id[token] = len(vocab_id) + overlap
-              overlap += 1
-      vocab_id.update(self.special_token)
-      vocab_id = dict(sorted(vocab_id.items(), key=lambda x: x[1]))
-      return vocab_id
+        self._normalize_probs()
 
-    else:
-      raise TypeError("self.special_token type must be List or Dictionary")
+        # indexing vocab
+        vocab_id = {token: idx for idx, token in enumerate(self.vocab)}
 
-  def _init_seed_vocab(self, corpus: List[str]):
-    char_counts = defaultdict(int)
-    subword_counts = defaultdict(int)
+        overlap = 0
+        for token, id in vocab_id.items():
+            if id in self.special_token.values():
+                vocab_id[token] = len(vocab_id) + overlap  # avoid index duplication
+                overlap += 1
+        vocab_id.update(self.special_token)
+        vocab_id = dict(sorted(vocab_id.items(), key=lambda x: x[1]))
+        return vocab_id
 
-    for sent in corpus:
-      chars = list(sent)
-      for c in chars:
-        char_counts[c] += 1
+    def _init_seed_vocab(self, corpus: List[str]):
+        """Initialize vocab and token probablity
 
-      for i in range(len(sent)):
-        for j in range(i + 1, min(i + self.max_sub_len + 1, len(sent) + 1)):
-          subword = sent[i:j]
-          subword_counts[subword] += 1
+        Args:
+            corpus (List[str]): Input sentences
+        """
+        char_counts = defaultdict(int)
+        subword_counts = defaultdict(int)
 
-    self.single_tokens = set(char_counts.keys())
-    self.vocab = list(self.single_tokens)
+        for sent in corpus:
+            chars = list(sent)
+            for c in chars:
+                char_counts[c] += 1
 
-    # 목표 크기의 4배로 초기 시드 크기 지정
-    seed_size = self.target_size * 4
-    sorted_subs = sorted(subword_counts.items(), key=lambda x: -x[1])
+            for i in range(len(sent)):
+                for j in range(i + 1, min(i + self.max_sub_len + 1, len(sent) + 1)):
+                    subword = sent[i:j]
+                    subword_counts[subword] += 1
 
-    for sub, _ in sorted_subs:
-      if len(self.vocab) >= seed_size:
-        break
-      if len(sub) > 1:
-        self.vocab.append(sub)
+        self.single_tokens = set(char_counts.keys())
+        self.vocab = list(self.single_tokens)
 
-    self.probs = {token: 1.0 / len(self.vocab) for token in self.vocab}   # 초기 확률 균등분포
+        seed_size = self.target_size * 4  # set a very big number (vocab size * 4)
+        sorted_subs = sorted(subword_counts.items(), key=lambda x: -x[1])
 
-    self._normalize_probs()
+        for sub, _ in sorted_subs:
+            if len(self.vocab) >= seed_size:
+                break
+            if len(sub) > 1:
+                self.vocab.append(sub)
 
-  def _run_em(self, corpus: List[str]):
-    """
-    EM algorithm
-    """
-    for _ in range(self.em_iters):
-      # E-step: caculate expectation value
-      self.counts = defaultdict(int)
-      total = 0
+        self.probs = {token: 1.0 / len(self.vocab) for token in self.vocab}
 
-      for sent in corpus:
-        tokens = self._viterbi_segment(sent)
-        for token in tokens:
-          self.counts[token] += 1
-          total += 1
+        self._normalize_probs()
 
-      # M-step: update probabilities
-      if total == 0:
-        continue
+    def _run_em(self, corpus: List[str]):
+        """run EM algorithm
 
-      total = sum(self.counts.values()) + self.epsilon
-      self.probs = {token: (self.counts.get(token, 0) + self.alpha / total) for token in self.vocab}
-      self._normalize_probs()
+        Args:
+            corpus (List[str]): Input sentences
+        """
+        for _ in range(self.em_iters):
+            # E-step: caculate expectation value
+            self.counts = defaultdict(int)
+            total = 0
 
-  def _compute_losses(self):
-    """
-    토큰 제거 시 발생하는 손실 계산
-    """
-    losses = {}
-    for token in self.vocab:
-      if token in self.counts:
-        losses[token] = self.counts[token] * safe_log_prob(self.probs[token], self.epsilon) # frequency * log probability
-      else:
-        losses[token] = float('inf')
+            for sent in corpus:
+                tokens = self._viterbi_segment(sent)
+                for token in tokens:
+                    self.counts[token] += 1
+                    total += 1
 
-    return losses
+            # M-step: update probabilities
+            if total == 0:
+                continue
 
-  def _prune_vocab(self, losses: Dict[str, float]):
-    # 단일 및 다중 문자 분리
-    multi_tokens = [t for t in self.vocab if len(t) > 1]
-    single_tokens = [t for t in self.vocab if len(t) == 1]
+            total = sum(self.counts.values()) + self.epsilon
+            self.probs = {
+                token: (
+                    self.counts.get(token, 0) + self.epsilon / total
+                )  # avoid zero for log calculation
+                for token in self.vocab
+            }
+            self._normalize_probs()
 
-    sorted_multi = sorted(multi_tokens, key=lambda x: -losses[x])
+    def _compute_losses(self) -> Dict[str, float]:
+        """Compute losses when token is removed
 
-    keep_size = int(len(sorted_multi) * self.n_per)
-    kept_multi = sorted_multi[:keep_size]
+        Returns:
+            Dict[str, float]: computed losses
+        """
+        losses = {}
+        for token in self.vocab:
+            if token in self.counts:
+                losses[token] = self.counts[token] * safe_log_prob(
+                    self.probs[token], self.epsilon
+                )  # frequency * log probability
+            else:
+                losses[token] = float("-inf")
 
-    new_vocab = single_tokens + kept_multi
-    self.vocab = new_vocab
+        return losses
 
-    self.probs = {token: self.probs[token] for token in new_vocab}
-    self._normalize_probs()
+    def _prune_vocab(self, losses: Dict[str, float]):
+        """prune vocab by n_per
 
-  def _normalize_probs(self):
-    total = sum(self.probs.values())
-    if total == 0:
-      return
-    self.probs = {k: v / total for k, v in self.probs.items()}
+        Args:
+            losses (Dict[str, float]): token losses
+        """
+        multi_tokens = [t for t in self.vocab if len(t) > 1]
+        single_tokens = [t for t in self.vocab if len(t) == 1]
 
-  def _viterbi_segment(self, sent: str) -> List[str]:
-    n = len(sent)
-    dp = [float('inf')] * (n+1)
-    dp[0] = 0
-    backpointer = [[] for _ in range(n + 1)]
+        sorted_multi = sorted(multi_tokens, key=lambda x: -losses[x])
 
-    for i in range(n + 1):
-      for j in range(max(0, i-self.max_sub_len), i):
-        token = sent[j:i]
-        if token in self.probs:
-          prob = safe_log_prob(self.probs.get(token, self.unk_penalty), self.epsilon)
+        keep_size = int(len(sorted_multi) * self.n_per)
+        kept_multi = sorted_multi[:keep_size]
 
-          if dp[j] + prob > dp[i]:
-            dp[i] = dp[j] + prob
-            backpointer[i] = backpointer[j] + [token]
+        new_vocab = single_tokens + kept_multi
+        self.vocab = new_vocab
 
-    return backpointer[n] if dp[n] != float('inf') else [sent]
+        self.probs = {token: self.probs[token] for token in new_vocab}
+        self._normalize_probs()
 
-  def tokenize(self, normalized_text: str) -> List[str]:
-    return self._viterbi_segment(normalized_text)
+    def _normalize_probs(self):
+        """normalize probality"""
+        total = sum(self.probs.values())
+        if total == 0:
+            return
+        self.probs = {k: v / total for k, v in self.probs.items()}
 
-  def detokenize(self, tokens: List[str]) -> str:
-    return ''.join(tokens).replace("▁", " ").strip()
+    def _viterbi_segment(self, sent: str) -> List[str]:
+        """find best segmentation of sentence by viterbi algorithm
+
+        Args:
+            sent (str): Input sentence
+
+        Returns:
+            List[str]: Segmented sentence
+        """
+        n = len(sent)
+        dp = [float("-inf")] * (n + 1)
+        dp[0] = 0
+        backpointer = [[] for _ in range(n + 1)]
+
+        for i in range(n + 1):
+            for j in range(max(0, i - self.max_sub_len), i):
+                token = sent[j:i]
+                if token in self.probs:
+                    prob = safe_log_prob(self.probs.get(token), self.epsilon)
+
+                    if dp[j] + prob > dp[i]:
+                        dp[i] = dp[j] + prob
+                        backpointer[i] = backpointer[j] + [
+                            token
+                        ]  # if probabiltiy is bigger, save segmentation
+
+                else:
+                    if not backpointer[i]:
+                        backpointer[i] = backpointer[j] + [self.unk_token]
+
+        return backpointer[n] if dp[n] != float("-inf") else [sent]
+
+    def tokenize(self, normalized_text: str) -> List[str]:
+        """tokenize normalized sentence with vocab
+
+        Args:
+            normalized_text (str): sentence to tokenize
+
+        Returns:
+            List[str]: tokenized sentence
+        """
+        return self._viterbi_segment(normalized_text)
+
+    def detokenize(self, tokens: List[str]) -> str:
+        """detokenize tokens to sentence
+
+        Args:
+            tokens (List[str]): Token to detokenize
+
+        Returns:
+            str: Detokenized sentence
+        """
+        return "".join(tokens).replace("▁", " ").strip()
