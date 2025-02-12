@@ -46,35 +46,72 @@ class Processor:
         self.tokenizer.vocab = self.word2idx
 
     def get_piece_size(self) -> int:
+        """get vocab size
+
+        Returns:
+            int: vocab size
+        """
         return len(self.word2idx)
 
     def id_to_piece(self, id: int) -> str:
-        """
-        convert id into subword
+        """convert id into subword
+
+        Args:
+            id (int): id to convert
+
+        Returns:
+            str: converted subwords
         """
         return self.idx2word[id]
 
     def piece_to_id(self, piece: str) -> int:
-        """
-        convert subword into id
+        """convert subword into id
+
+        Args:
+            piece (str): subword pieces to convert
+
+        Returns:
+            int: converted ids
         """
         return self.word2idx[piece]
 
     def decode_pieces(self, subwords: List[str]) -> str:
-        """
-        convert list of subwords into sentence
+        """convert list of subwords into sentence
+
+        Args:
+            subwords (List[str]): subword list to convert
+
+        Returns:
+            str: converted sentence
         """
         return self.tokenizer.detokenize(subwords)
 
     def decode_ids(self, ids: List[int]) -> str:
-        """
-        convert list of ids into sentence
+        """convert list of ids into sentence
+
+        Args:
+            ids (List[int]): id list to convert
+
+        Returns:
+            str: converted sentence
         """
         subwords = [self.id_to_piece(id) for id in ids]
 
         return self.decode_pieces(subwords)
 
     def encode(self, sentence: str, option: type = str) -> List[str] | List[int]:
+        """convert sentence to subwords or ids
+
+        Args:
+            sentence (str): sentence to convert
+            option (type, optional): id or suword setting. Defaults to str.
+
+        Raises:
+            ValueError: option type error
+
+        Returns:
+            List[str] | List[int]: converted subwords or ids
+        """
         sentence = self.normalizer.normalize(sentence)
         subwords = self.tokenizer.tokenize(sentence)
 
@@ -88,6 +125,19 @@ class Processor:
     def encode_with_sp_tokens(
         self, sentence: str, max_length: int, option: type = str
     ) -> List[str] | List[int]:
+        """convert sentence to suwords or ids with special tokens
+
+        Args:
+            sentence (str): sentence to convert
+            max_length (int): padding length
+            option (type, optional): id or suword setting. Defaults to str.
+
+        Raises:
+            ValueError: option type error
+
+        Returns:
+            List[str] | List[int]: converted subwords or ids
+        """
         subwords = self.encode(sentence, int)
         encoded = [self.special_tokens["sos"]] + subwords + [self.special_tokens["eos"]]
 
@@ -104,10 +154,26 @@ class Processor:
             raise ValueError("option must be str or int")
 
     def decode_ids_with_sp_tokens(self, ids: List[int]) -> str:
+        """convert ids with special tokens to sentence
+
+        Args:
+            ids (List[int]): ids to convert
+
+        Returns:
+            str: converted sentence
+        """
         filtered_ids = [id for id in ids if id not in self.special_tokens.values()]
         return self.decode_ids(filtered_ids)
 
     def decode_pieces_with_sp_tokens(self, pieces: List[str]) -> str:
+        """convert subwords with special tokens to sentence
+
+        Args:
+            pieces (List[str]): subwords to convert
+
+        Returns:
+            str: converted sentence
+        """
         filitered_pieces = [
             piece for piece in pieces if piece not in self.special_tokens.keys()
         ]

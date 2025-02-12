@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Any, Optional
+from typing import List, Dict, Any, Optional
 from model_pb2 import ModelProto
 from tokenizer.bpe import BPE
 from tokenizer.unigram import Unigram
@@ -25,7 +25,8 @@ class Trainer:
     ):
         self.vocab_size = vocab_size
         self.model_prefix = model_prefix
-
+        
+        # default special tokens: PAD, UNK, SOS, EOS
         self.pad_token = pad_token
         self.unk_token = unk_token
         self.sos_token = sos_token
@@ -65,20 +66,32 @@ class Trainer:
             raise ValueError("mode must be bpe or unigram")
 
     def save_vocab(self, vocab: Dict[str, int]):
+        """save vocab with text file
+
+        Args:
+            vocab (Dict[str, int]): vocab to save
+        """
         with open(f"./{self.model_prefix}_vocab.txt", "w") as fw:
             for token, idx in vocab.items():
                 fw.write(f"{token}\t{idx}\n")
 
     def save(self, vocab: Dict[str, int]):
+        """save model proto file
+
+        Args:
+            vocab (Dict[str, int]): vocab to save
+        """
         self.save_vocab(vocab)  # save vocab
 
         model_proto = ModelProto()  # ModelProto in model proto file
 
+        # save vocab to proto file
         for key, value in vocab.items():
             entry = model_proto.vocab.add()
             entry.key = key
             entry.value = value
-
+        
+        # save special tokens to proto file
         default_tokens = model_proto.special_tokens
         default_tokens.pad.token = self.pad_token
         default_tokens.unk.token = self.unk_token
@@ -96,6 +109,7 @@ class Trainer:
                 entry.sp_token = token
                 entry.value = idx
 
+        # save normalizer config to proto file
         normalizer_config = model_proto.normalizer
         normalizer_config.lower = self.normalizer.lower
         normalizer_config.unicode_format = self.normalizer.unicode_format
@@ -110,6 +124,7 @@ class Trainer:
         model_proto.vocab_size = self.vocab_size
 
         if self.mode.lower() == "unigram":
+            # save unigram config to proto file
             unigram_config = model_proto.unigram
             unigram_config.max_sub_len = self.tokenizer.max_sub_len
             unigram_config.em_iters = self.tokenizer.em_iters
@@ -125,5 +140,13 @@ class Trainer:
             fw.write(model_proto.SerializeToString())
 
     def train(self, corpus: List[str]) -> Dict[str, int]:
+        """train sentences with tokenizer
+
+        Args:
+            corpus (List[str]): sentences to train
+
+        Returns:
+            Dict[str, int]: trained vocab
+        """
         corpus = [self.normalizer.normalize(sent) for sent in corpus]
         return self.tokenizer.train(corpus)

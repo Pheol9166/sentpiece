@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple, Any
 from model_pb2 import ModelProto
 import json
 
@@ -8,7 +8,18 @@ def load_json(path: str):
         return json.load(json_file)
 
 
-def load_model(path: str):
+def load_model(path: str) -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int], Dict[str, Any], str, int, Dict[str, Any], Dict[str, float]]:
+    """load model setting from proto file
+
+    Args:
+        path (str): proto file path
+
+    Raises:
+        ValueError: mode check
+
+    Returns:
+        Tuple[Dict[str, int], Dict[str, int], Dict[str, int], Dict[str, Any], str, int, Dict[str, Any], Dict[str, float]]: model setting
+    """
     model_proto = ModelProto()
     with open(path, "rb") as fr:
         model_proto.ParseFromString(fr.read())
@@ -67,6 +78,13 @@ def load_model(path: str):
 
 
 def load_vocab(path: str) -> Dict[str, int]:
+    """load vocab from path
+
+    Args:
+        path (str): file path
+    Returns:
+        Dict[str, int]: loaded vocab
+    """
     vocab = {}
     with open(path, "r") as fr:
         for line in fr:

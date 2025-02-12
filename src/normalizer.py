@@ -10,8 +10,7 @@ class Normalizer:
         unicode_format: str = "NFKC",
         custom_rules: Optional[Dict[str, str]] = None,
     ):
-        """
-        Text normalize class
+        """Text normalize class
 
         Args:
           lower(bool): wheter to use lower change, default is True.
@@ -23,8 +22,7 @@ class Normalizer:
         self.custom_rules = custom_rules or {}
 
     def normalize(self, text: str) -> str:
-        """
-        normalize input text
+        """normalize input text
 
         Args:
           text(str): input text
