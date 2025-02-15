@@ -1,6 +1,18 @@
 from typing import Dict, Tuple, Any
 from model_pb2 import ModelProto
 import json
+import time
+
+
+def measure_time(func):
+    def wrapper(*args, **kwargs):
+        st = time.time()
+        result = func(*args, **kwargs)
+        ed = time.time()
+        print(f"{func.__name__} Run time: {ed - st:.4f} secs", flush=True)
+        return result
+
+    return wrapper
 
 
 def load_json(path: str):
@@ -8,7 +20,18 @@ def load_json(path: str):
         return json.load(json_file)
 
 
-def load_model(path: str) -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int], Dict[str, Any], str, int, Dict[str, Any], Dict[str, float]]:
+def load_model(
+    path: str,
+) -> Tuple[
+    Dict[str, int],
+    Dict[str, int],
+    Dict[str, int],
+    Dict[str, Any],
+    str,
+    int,
+    Dict[str, Any],
+    Dict[str, float],
+]:
     """load model setting from proto file
 
     Args:
