@@ -1,0 +1,26 @@
+{
+    "vocab_size": 8000,
+    "model_prefix": "spm",
+    "mode": "bpe",
+    "pad_token": "[PAD]",
+    "pad_id": 0,
+    "unk_token": "[UNK]",
+    "unk_id": 1,
+    "sos_token": "[SOS]",
+    "sos_id": 2,
+    "eos_token": "[EOS]",
+    "eos_id": 3,
+    "custom_special_tokens": {},
+    "normalizer_config": {
+        "lower": true,
+        "unicode_format": "NFKC",
+        "custom_rules": {}
+    },
+    "unigram_config": {
+        "max_sub_len": 8,
+        "vocab_seed": 4,
+        "em_iters": 3,
+        "n_per": 0.8,
+        "epsilon": 1e-10
+    }
+  }
