@@ -27,7 +27,7 @@ class MaxHeap:
         """
         self.heap.append(value)
         self._sift_up(len(self.heap) - 1)
- 
+
     def extract_max(self) -> Tuple:
         """extract maximum value from heap
 
@@ -47,7 +47,7 @@ class MaxHeap:
 
     def _sift_up(self, index: int):
         """sort heap after insert value
-        
+
         Args:
             index (int): index of inserted value
         """
@@ -59,7 +59,7 @@ class MaxHeap:
 
     def _sift_down(self, index: int = 0):
         """sort heap after extract max value.
-        
+
         Args:
             index (int): index of maximum value
         """
@@ -76,8 +76,7 @@ class MaxHeap:
             self._sift_down(largest)
 
     def clear(self):
-        """clear the heap
-        """
+        """clear the heap"""
         self.heap.clear()
 
     def update(self, data: Dict[str, int]):
@@ -87,7 +86,9 @@ class MaxHeap:
             data (Dict[str, int]): data to update
         """
         for key, value in data.items():
-            if (value, key) not in self.heap:
+            if (value, key) in self.heap:
+                continue
+            else:
                 self.insert((value, key))
 
     def __len__(self):
