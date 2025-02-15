@@ -126,6 +126,7 @@ class Trainer:
         if self.mode.lower() == "unigram":
             # save unigram config to proto file
             unigram_config = model_proto.unigram
+            unigram_config.vocab_seed = self.tokenizer.vocab_seed
             unigram_config.max_sub_len = self.tokenizer.max_sub_len
             unigram_config.em_iters = self.tokenizer.em_iters
             unigram_config.n_per = self.tokenizer.n_per

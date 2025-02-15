@@ -76,6 +76,7 @@ def load_model(
 
     if model_type == "unigram":
         unigram_config = {
+            "vocab_seed": model_proto.vocab_seed,
             "max_sub_len": model_proto.unigram.max_sub_len,
             "em_iters": model_proto.unigram.em_iters,
             "n_per": model_proto.unigram.n_per,
