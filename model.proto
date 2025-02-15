@@ -12,12 +12,13 @@ message CustomRule {
 }
 
 message UnigramConfig {
-  uint32 max_sub_len = 1;
-  uint32 em_iters = 2;
-  float n_per = 3;
-  float epsilon = 4;
-  float alpha = 5;
-  float unk_penalty = 6;
+  uint32 vocab_seed = 1;
+  uint32 max_sub_len = 2;
+  uint32 em_iters = 3;
+  float n_per = 4;
+  float epsilon = 5;
+  float alpha = 6;
+  float unk_penalty = 7;
 }
 
 message UnigramProb {

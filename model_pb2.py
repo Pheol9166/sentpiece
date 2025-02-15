@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x0bmodel.proto\"\\\n\x10NormalizerConfig\x12\r\n\x05lower\x18\x01 \x01(\x08\x12\x16\n\x0eunicode_format\x18\x02 \x01(\t\x12!\n\x0c\x63ustom_rules\x18\x03 \x03(\x0b\x32\x0b.CustomRule\"2\n\nCustomRule\x12\x0f\n\x07pattern\x18\x01 \x01(\t\x12\x13\n\x0breplacement\x18\x02 \x01(\t\"z\n\rUnigramConfig\x12\x13\n\x0bmax_sub_len\x18\x01 \x01(\r\x12\x10\n\x08\x65m_iters\x18\x02 \x01(\r\x12\r\n\x05n_per\x18\x03 \x01(\x02\x12\x0f\n\x07\x65psilon\x18\x04 \x01(\x02\x12\r\n\x05\x61lpha\x18\x05 \x01(\x02\x12\x13\n\x0bunk_penalty\x18\x06 \x01(\x02\"*\n\x0bUnigramProb\x12\r\n\x05token\x18\x01 \x01(\t\x12\x0c\n\x04prob\x18\x02 \x01(\x02\"(\n\nVocabEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03UNK\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03PAD\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03SOS\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03\x45OS\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"a\n\x13\x44\x65\x66\x61ultSpecialToken\x12\x11\n\x03pad\x18\x01 \x01(\x0b\x32\x04.PAD\x12\x11\n\x03unk\x18\x02 \x01(\x0b\x32\x04.UNK\x12\x11\n\x03sos\x18\x03 \x01(\x0b\x32\x04.SOS\x12\x11\n\x03\x65os\x18\x04 \x01(\x0b\x32\x04.EOS\"3\n\x10\x43ustomTokenEntry\x12\x10\n\x08sp_token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"\x94\x02\n\nModelProto\x12\x1a\n\x05vocab\x18\x01 \x03(\x0b\x32\x0b.VocabEntry\x12,\n\x0especial_tokens\x18\x02 \x01(\x0b\x32\x14.DefaultSpecialToken\x12(\n\rcustom_tokens\x18\x03 \x03(\x0b\x32\x11.CustomTokenEntry\x12%\n\nnormalizer\x18\x04 \x01(\x0b\x32\x11.NormalizerConfig\x12\x12\n\nmodel_type\x18\x05 \x01(\t\x12\x12\n\nvocab_size\x18\x06 \x01(\r\x12\x1f\n\x07unigram\x18\x07 \x01(\x0b\x32\x0e.UnigramConfig\x12\"\n\x0cunigram_prob\x18\x08 \x03(\x0b\x32\x0c.UnigramProbb\x06proto3')
+  serialized_pb=_b('\n\x0bmodel.proto\"\\\n\x10NormalizerConfig\x12\r\n\x05lower\x18\x01 \x01(\x08\x12\x16\n\x0eunicode_format\x18\x02 \x01(\t\x12!\n\x0c\x63ustom_rules\x18\x03 \x03(\x0b\x32\x0b.CustomRule\"2\n\nCustomRule\x12\x0f\n\x07pattern\x18\x01 \x01(\t\x12\x13\n\x0breplacement\x18\x02 \x01(\t\"\x8e\x01\n\rUnigramConfig\x12\x12\n\nvocab_seed\x18\x01 \x01(\r\x12\x13\n\x0bmax_sub_len\x18\x02 \x01(\r\x12\x10\n\x08\x65m_iters\x18\x03 \x01(\r\x12\r\n\x05n_per\x18\x04 \x01(\x02\x12\x0f\n\x07\x65psilon\x18\x05 \x01(\x02\x12\r\n\x05\x61lpha\x18\x06 \x01(\x02\x12\x13\n\x0bunk_penalty\x18\x07 \x01(\x02\"*\n\x0bUnigramProb\x12\r\n\x05token\x18\x01 \x01(\t\x12\x0c\n\x04prob\x18\x02 \x01(\x02\"(\n\nVocabEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03UNK\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03PAD\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03SOS\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"#\n\x03\x45OS\x12\r\n\x05token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"a\n\x13\x44\x65\x66\x61ultSpecialToken\x12\x11\n\x03pad\x18\x01 \x01(\x0b\x32\x04.PAD\x12\x11\n\x03unk\x18\x02 \x01(\x0b\x32\x04.UNK\x12\x11\n\x03sos\x18\x03 \x01(\x0b\x32\x04.SOS\x12\x11\n\x03\x65os\x18\x04 \x01(\x0b\x32\x04.EOS\"3\n\x10\x43ustomTokenEntry\x12\x10\n\x08sp_token\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\r\"\x94\x02\n\nModelProto\x12\x1a\n\x05vocab\x18\x01 \x03(\x0b\x32\x0b.VocabEntry\x12,\n\x0especial_tokens\x18\x02 \x01(\x0b\x32\x14.DefaultSpecialToken\x12(\n\rcustom_tokens\x18\x03 \x03(\x0b\x32\x11.CustomTokenEntry\x12%\n\nnormalizer\x18\x04 \x01(\x0b\x32\x11.NormalizerConfig\x12\x12\n\nmodel_type\x18\x05 \x01(\t\x12\x12\n\nvocab_size\x18\x06 \x01(\r\x12\x1f\n\x07unigram\x18\x07 \x01(\x0b\x32\x0e.UnigramConfig\x12\"\n\x0cunigram_prob\x18\x08 \x03(\x0b\x32\x0c.UnigramProbb\x06proto3')
 )
 
 
@@ -116,43 +116,50 @@ _UNIGRAMCONFIG = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='max_sub_len', full_name='UnigramConfig.max_sub_len', index=0,
+      name='vocab_seed', full_name='UnigramConfig.vocab_seed', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='em_iters', full_name='UnigramConfig.em_iters', index=1,
+      name='max_sub_len', full_name='UnigramConfig.max_sub_len', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='n_per', full_name='UnigramConfig.n_per', index=2,
-      number=3, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      name='em_iters', full_name='UnigramConfig.em_iters', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='epsilon', full_name='UnigramConfig.epsilon', index=3,
+      name='n_per', full_name='UnigramConfig.n_per', index=3,
       number=4, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='alpha', full_name='UnigramConfig.alpha', index=4,
+      name='epsilon', full_name='UnigramConfig.epsilon', index=4,
       number=5, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='unk_penalty', full_name='UnigramConfig.unk_penalty', index=5,
+      name='alpha', full_name='UnigramConfig.alpha', index=5,
       number=6, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='unk_penalty', full_name='UnigramConfig.unk_penalty', index=6,
+      number=7, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -169,8 +176,8 @@ _UNIGRAMCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=161,
-  serialized_end=283,
+  serialized_start=162,
+  serialized_end=304,
 )
 
 
@@ -207,8 +214,8 @@ _UNIGRAMPROB = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=285,
-  serialized_end=327,
+  serialized_start=306,
+  serialized_end=348,
 )
 
 
@@ -245,8 +252,8 @@ _VOCABENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=329,
-  serialized_end=369,
+  serialized_start=350,
+  serialized_end=390,
 )
 
 
@@ -283,8 +290,8 @@ _UNK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=371,
-  serialized_end=406,
+  serialized_start=392,
+  serialized_end=427,
 )
 
 
@@ -321,8 +328,8 @@ _PAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=408,
-  serialized_end=443,
+  serialized_start=429,
+  serialized_end=464,
 )
 
 
@@ -359,8 +366,8 @@ _SOS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=445,
-  serialized_end=480,
+  serialized_start=466,
+  serialized_end=501,
 )
 
 
@@ -397,8 +404,8 @@ _EOS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=482,
-  serialized_end=517,
+  serialized_start=503,
+  serialized_end=538,
 )
 
 
@@ -449,8 +456,8 @@ _DEFAULTSPECIALTOKEN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=519,
-  serialized_end=616,
+  serialized_start=540,
+  serialized_end=637,
 )
 
 
@@ -487,8 +494,8 @@ _CUSTOMTOKENENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=618,
-  serialized_end=669,
+  serialized_start=639,
+  serialized_end=690,
 )
 
 
@@ -567,8 +574,8 @@ _MODELPROTO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=672,
-  serialized_end=948,
+  serialized_start=693,
+  serialized_end=969,
 )
 
 _NORMALIZERCONFIG.fields_by_name['custom_rules'].message_type = _CUSTOMRULE
