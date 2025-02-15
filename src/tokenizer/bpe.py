@@ -3,6 +3,7 @@ from collections import defaultdict
 from tokenizer.meta_tokenizer import Tokenizer
 from tokenizer.heap import MaxHeap
 from tqdm import tqdm
+from multiprocessing import Pool
 
 
 class BPE(Tokenizer):
@@ -35,33 +36,51 @@ class BPE(Tokenizer):
         for pair, freq in self.pair_freq.items():
             self.heap.insert((freq, pair))
 
-        try:
-            pbar = tqdm(total=self.vocab_size, desc="BPE Training...", leave=False)
-            while (
-                len(self.vocab) <= self.vocab_size - len(self.special_token)
-                and len(self.heap) > 0
-            ):
+        pbar = tqdm(
+            total=self.vocab_size,
+            desc="BPE Training...",
+            ncols=100,
+            position=0,
+            leave=True,
+        )
 
-                freq, pair = self.heap.extract_max()
+        while (
+            len(self.vocab) < self.vocab_size - len(self.special_token)
+            and len(self.heap) > 0
+        ):
+            result = self.heap.extract_max()
+            if result is None:
+                break
+
+            freq, pair = result
+            current_freq = self.pair_freq.get(pair, 0)
+
+            if current_freq == freq and current_freq > 0:
                 a, b = pair
                 new_token = a + b
                 self.vocab.add(new_token)
-                pbar.update(1)
+
+                # update pair frequency
                 self._update_pair_freq(pair, new_token)
+
+                self._init_pair_freq()
+
                 self.heap.update(self.pair_freq)
 
-        except Exception as e:
-            print(f"Error: {e}")
+                pbar.update(1)
 
         vocab_id = {token: idx for idx, token in enumerate(self.vocab)}
 
+        # special token handling
         overlap = 0
         for token, id in vocab_id.items():
             if id in self.special_token.values():
                 vocab_id[token] = len(vocab_id) + overlap
                 overlap += 1
         vocab_id.update(self.special_token)
+
         vocab_id = dict(sorted(vocab_id.items(), key=lambda x: x[1]))
+
         return vocab_id
 
     def _init_vocab(self, corpus: List[str]):
@@ -70,16 +89,47 @@ class BPE(Tokenizer):
         Args:
             corpus (List[str]): Input sentences
         """
-        self.char_sents = [list(sent) for sent in corpus]
-        self.vocab = set(sum(self.char_sents, []))
+        self.char_sents = list()
+        vocab = set()
+        for sent in corpus:
+            chars = list(sent)
+            self.char_sents.append(chars)
+            vocab.update(chars)
+        self.vocab = vocab
+
+    def _compute_pair_freq(sent):
+        freq = defaultdict(int)
+        for i in range(len(sent) - 1):
+            pair = (sent[i], sent[i + 1])
+            freq[pair] += 1
+        return freq
 
     def _init_pair_freq(self):
-        """Create a frequency dictionary for all character pairs in the given sentences.
-        """
-        for sent in self.char_sents:
-            for i in range(len(sent) - 1):
-                pair = (sent[i], sent[i + 1])
-                self.pair_freq[pair] += 1
+        """Create a frequency dictionary for all character pairs in the given sentences."""
+
+        with Pool() as pool:
+            results = pool.map(BPE._compute_pair_freq, self.char_sents)
+
+        new_pair_freq = defaultdict(int)
+
+        for pair_freq in results:
+            for pair, freq in pair_freq.items():
+                new_pair_freq[pair] += freq
+
+        self.pair_freq = new_pair_freq
+
+    def _process_pair_freq(args):
+        sent, a, b, new_token = args
+        new_sent = []
+        i = 0
+        while i < len(sent):
+            if i < len(sent) - 1 and sent[i] == a and sent[i + 1] == b:
+                new_sent.append(new_token)
+                i += 2
+            else:
+                new_sent.append(sent[i])
+                i += 1
+        return new_sent
 
     def _update_pair_freq(self, merged_pair: Tuple[str, str], new_token: str):
         """Update pair frequency for all character pairs when given pair is merged
@@ -89,39 +139,9 @@ class BPE(Tokenizer):
             new_token (str): Merged result
         """
         a, b = merged_pair
-        for idx, sent in enumerate(self.char_sents):
-            i = 0
-            while i < len(sent) - 1:
-                if sent[i] == a and sent[i + 1] == b:
-                    if i > 0:
-                        prev_pair = (sent[i - 1], a)
-                        self.pair_freq[prev_pair] -= 1
-                        if self.pair_freq[prev_pair] == 0:
-                            del self.pair_freq[prev_pair]
-                        new_prev_pair = (sent[i - 1], new_token)
-                        self.pair_freq[new_prev_pair] = (
-                            self.pair_freq.get(new_prev_pair, 0) + 1
-                        )
-
-                    if i < len(sent) - 2:
-                        next_pair = (b, sent[i + 2])
-                        self.pair_freq[next_pair] -= 1
-                        if self.pair_freq[next_pair] == 0:
-                            del self.pair_freq[next_pair]
-                        new_next_pair = (new_token, sent[i + 2])
-                        self.pair_freq[new_next_pair] = (
-                            self.pair_freq.get(new_next_pair, 0) + 1
-                        )
-
-                    self.pair_freq[(a, b)] -= 1
-                    if self.pair_freq[(a, b)] == 0:
-                        del self.pair_freq[(a, b)]
-
-                    sent[i] = new_token
-                    del sent[i + 1]
-                else:
-                    i += 1
-                self.char_sents[idx] = sent
+        with Pool() as p:
+            args = [(sent, a, b, new_token) for sent in self.char_sents]
+            self.char_sents = p.map(BPE._process_pair_freq, args)
 
     def tokenize(self, normalized_sent: str) -> List[str]:
         """tokenize normalized sentence with trained vocab
