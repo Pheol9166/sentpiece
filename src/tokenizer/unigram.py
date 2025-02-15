@@ -16,12 +16,14 @@ class Unigram(Tokenizer):
         vocab_size: int = 1000,
         unk_token: str = "[UNK]",
         special_token: Dict[str, int] = {"[UNK]": 0},
+        vocab_seed: int = 4,
         max_sub_len: int = 8,
         em_iters: int = 3,
         n_per: float = 0.8,
-        epsilon: float = 1e-10,
+        epsilon: float = 1e-10
     ):
         self.target_size = vocab_size
+        self.vocab_seed = vocab_seed   # initial vocab seed size
         self.max_sub_len = max_sub_len
         self.em_iters = em_iters
         self.n_per = n_per  # remaining percentage
@@ -32,8 +34,8 @@ class Unigram(Tokenizer):
         self.epsilon = epsilon  # forbidding 0 division error & unk_penalty
 
         self.unk_token = unk_token
-        self.special_token = special_token
-
+        self.special_token = special_token 
+    
     def train(self, corpus: List[str]) -> Dict[str, int]:
         """train vocab by unigram model
 
@@ -45,7 +47,7 @@ class Unigram(Tokenizer):
         """
         self._init_seed_vocab(corpus)
 
-        pbar = tqdm(total=self.target_size, desc="Unigram Training...", leave=False)
+        pbar = tqdm(total=self.target_size, desc="Unigram Training...", ncols=100, position=0, leave=False)
         while len(self.vocab) >= self.target_size - len(self.special_token):
             self._run_em(corpus)
 
@@ -90,7 +92,7 @@ class Unigram(Tokenizer):
         self.single_tokens = set(char_counts.keys())
         self.vocab = list(self.single_tokens)
 
-        seed_size = self.target_size * 4  # set a very big number (vocab size * 4)
+        seed_size = self.target_size * self.vocab_seed  # adjust initial vocab size
         sorted_subs = sorted(subword_counts.items(), key=lambda x: -x[1])
 
         for sub, _ in sorted_subs:
