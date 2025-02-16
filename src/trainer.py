@@ -60,7 +60,7 @@ class Trainer:
                     **unigram_config,
                 )
                 if unigram_config
-                else Unigram(vocab_size, special_token=self.special_token)
+                else Unigram(vocab_size, unk_token=self.unk_token, special_token=self.special_token)
             )
         else:
             raise ValueError("mode must be bpe or unigram")

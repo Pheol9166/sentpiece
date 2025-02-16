@@ -34,11 +34,15 @@ class Processor:
                 special_token=self.special_tokens,
             )
         elif mode == "unigram":
-            self.tokenizer = Unigram(
-                vocab_size,
-                unk_token=self.default_tokens["unk"].token,
-                special_token=self.special_tokens,
-                **unigram_config
+            self.tokenizer = (
+                Unigram(
+                    vocab_size,
+                    unk_token=self.unk_token,
+                    special_token=self.special_token,
+                    **unigram_config,
+                )
+                if unigram_config
+                else Unigram(vocab_size, unk_token=self.unk_token, special_token=self.special_token)
             )
             self.tokenizer.probs = unigram_prob
         else:
@@ -139,10 +143,12 @@ class Processor:
             List[str] | List[int]: converted subwords or ids
         """
         subwords = self.encode(sentence, int)
-        encoded = [self.special_tokens["sos"]] + subwords + [self.special_tokens["eos"]]
+        encoded = [self.special_tokens["sos"]] + \
+            subwords + [self.special_tokens["eos"]]
 
         if len(encoded) < max_length:
-            encoded += [self.special_tokens["pad"]] * (max_length - len(encoded))
+            encoded += [self.special_tokens["pad"]] * \
+                (max_length - len(encoded))
         else:
             encoded = encoded[:max_length]
 
@@ -162,7 +168,8 @@ class Processor:
         Returns:
             str: converted sentence
         """
-        filtered_ids = [id for id in ids if id not in self.special_tokens.values()]
+        filtered_ids = [
+            id for id in ids if id not in self.special_tokens.values()]
         return self.decode_ids(filtered_ids)
 
     def decode_pieces_with_sp_tokens(self, pieces: List[str]) -> str:
